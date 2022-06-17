@@ -1,0 +1,333 @@
+---
+title: "Fußball Statistic Analyse in Europa Ligas"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(RColorBrewer)
+library(dplyr)
+library(plotly)
+library(ggplot2)
+myPalette<- brewer.pal(8,"Set2")
+
+yo<- read_delim("VDA/data/2021-2022 Football Team Stats.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-2"), 
+    trim_ws = TRUE)
+hallo1<- as.data.frame(yo)
+hallogt<-yo %>% separate(col = "Top Team Scorer", into = c("BestScorer","GoalScored"), sep=" - ")
+
+
+hallo2<- hallo1 %>%
+  mutate(
+    average=sum(Attendance)/98,
+    
+  ) %>%
+  filter(Attendance<average) %>%
+     select(Squad, Country,Attendance)
+
+hallo3 <- hallo1 %>%
+  group_by(Country) %>%
+  mutate(
+    summe=sum(Pts),
+    
+  ) %>%
+  select(Squad, Country,summe)
+# lander mit punkten grosser als die average
+hallo4<- yo %>%
+  mutate(
+    average=sum(Pts)/5
+  ) %>%
+  group_by(Country) %>%
+  mutate(
+    summe=sum(Pts)
+    ) %>%
+  filter(summe > average) %>%
+  select( Country,summe,average)
+
+hallo5<-yo %>%
+  mutate(
+    average=sum(W)/98
+  ) %>%
+  filter(W> average) %>%
+ select(Squad,W,average)
+
+hallo6<- yo %>%
+  mutate(
+    average=sum(Pts)/98
+  ) %>%
+  filter(Pts< average) %>%
+ select(Squad,Pts,average)
+
+hallo7<-yo %>%
+  mutate(
+    average=sum(GD)/98
+  ) %>%
+  filter(GD> average) %>%
+ select(Squad,GD,average)
+
+hallo8<-yo %>%
+  mutate(
+    average=sum(`Pts/G`)/98
+  ) %>%
+  filter(`Pts/G`< average) %>%
+ select(Squad,`Pts/G`,average,GF)
+
+hallo9<-hallogt %>%
+  mutate(
+    Average=sum(as.numeric(GoalScored))/98
+    
+  ) %>% 
+  filter(GoalScored > Average) %>%
+  select(BestScorer, GoalScored ,Average)
+
+hallo10<-hallogt %>%
+  group_by(Country)%>%
+  mutate(
+    Average=sum(as.numeric(GoalScored))/98
+    
+  ) %>% 
+  filter(GoalScored > Average) %>%
+  select(BestScorer, GoalScored ,Average,Country)
+
+hallo11<- hallogt %>%
+  mutate(
+    GPMA=as.numeric(GoalScored)/MP,
+    Average=sum(GPMA)/98
+    
+  ) %>% 
+  filter(GPMA> Average) %>%
+  select(BestScorer, GoalScored ,GPMA,Country)
+
+hallo12<- hallogt %>%
+ group_by(Country)%>%
+  mutate(
+    GPMA=as.numeric(GoalScored)/MP,
+    Average=sum(GPMA)/98
+    
+  ) %>% 
+  filter(GPMA> Average) %>%
+  select(BestScorer, GoalScored ,GPMA,Country)
+
+
+
+
+```
+
+
+Besten FußballLänder in Europas
+=======================================================================
+
+Column { .tabset .tabset-fade data-width=600}
+-----------------------------------------------------------------------
+
+### FußballLänder Und Ihre Häufigkeiten
+
+```{r}
+ p1<-ggplot(yo , mapping=aes(x=Country)) +
+     geom_bar(fill="blue", color="blue") +
+     labs(
+         title="5 Besten Meisterschaften", 
+         subtitle="die 5 Besten FußballLänder und Ihre Häufigkeiten",
+         x="CountryName", 
+         y="Absolute Häufigkeit"
+     ) 
+ggplotly(p1)
+
+
+```
+
+### FußballLänder und Anzahl von Squads mit Attendance kleiner als die Average 
+
+```{r}
+p<-ggplot(hallo2 , mapping=aes(x=Country)) +
+  geom_histogram(fill="red", color="red",stat="count" , breaks=seq(0, 20,4)) +
+  
+  labs(
+    title="5 Besten Meisterschaften", 
+    subtitle="Anzahl von Mannschaften pro Land mit wenigen Attendance",
+    x="CountryName", 
+    y="Count"
+  ) +
+  coord_flip()
+ggplotly(p)
+    
+```
+
+
+
+Column { data-width=400}
+-----------------------------------------------------------------------
+
+### FußballLänder und die Summe der Punkten Ihrer Clubs
+
+```{r}
+p2<-ggplot(hallo3) +
+  geom_point(mapping=aes(x=Country, y=summe), 
+             color="black",fill="black") +
+  labs(
+    title="5 Besten Länder und die Summe ihrer gesamten Punkten", 
+    x="Name von Länder", 
+    y="Gesamte Summe der Punkten"
+  ) 
+ggplotly(p2)
+
+```
+
+### FußballLänder von der die Summe der Punkte Ihrer Mannschaften größer als die Average
+
+```{r}
+ ggplot(hallo4 , mapping=aes(x=Country)) +
+     geom_bar(fill="green", color="green") +
+     labs(
+         title=" Besten FußballLänder", 
+         subtitle="FußballLänder mit Punkten größer als die Average",
+         x="Namen von Countries", 
+         y="Absoluten Häufigkeiten"
+     ) 
+
+```
+
+Statistik der Mannschaften
+=======================================================================
+Column {.tabset .tabset-fade data-width=400}
+-----------------------------------------------------------------------
+
+### Mannschaften die mehr als die Average gewonnen haben
+
+```{r}
+p3<-ggplot(hallo5) +
+  geom_point(mapping=aes(x=W, y=Squad), 
+             color="orange",fill="orange") +
+  labs(
+    title=" Beste Mannschaften die ueber der Average gewinnen", 
+    y="Name von Mannschaften", 
+    x="Anzahl von gewonnenen Spielen"
+  )
+ggplotly(p3)
+
+```
+
+### Mannschaften mit Punkten weniger als die Average
+```{r}
+p4<-ggplot(hallo6) +
+  geom_point(mapping=aes(x=Pts, y=Squad), 
+             color="red",fill="red") +
+  labs(
+    title=" Schwache Mannschaften mit Punkten unter der Average ", 
+    y="Name von Mannschaften", 
+    x="Punkte der Mannschaften"
+  )
+ggplotly(p4)
+
+```
+
+Column {data-width=600}
+-----------------------------------------------------------------------
+
+### Mannschaften  Goal Difference oberhalb der Average
+
+```{r}
+p6<-ggplot(hallo7) +
+  geom_point(mapping=aes(x=GD, y=Squad), 
+             color="green",fill="green") +
+  labs(
+    title=" gute Mannschaften mit Goal Difference ober der Average ", 
+    y="Name von Mannschaften", 
+    x="Goal Difference der Mannschaften"
+  ) 
+ggplotly(p6)
+
+```
+
+### Mannschaften mit schlechten Goal Scored Average
+
+```{r}
+p5<-ggplot(hallo8) +
+  geom_point(mapping=aes(x=GF, y=Squad), 
+             color="blue",fill="blue") +
+  labs(
+    title=" Schlechte Mannschaften mit Schlechtem Goal Scored  Average ", 
+    y="Name von Mannschaften", 
+    x="Goal Scored der Mannschaften"
+  ) 
+ggplotly(p5)
+
+```
+
+Informationen über die Spieler
+=======================================================================
+Column {.tabset .tabset-fade data-width=550}
+-----------------------------------------------------------------------
+
+### Schiessverhaeltnis zwischen die Ligas mit BestScorer ueber die Average
+```{r}
+p8<-ggplot(hallo10 , mapping=aes(x=Country)) +
+     geom_bar(fill="orange", color="orange") +
+     labs(
+         title=" Ligas Goalausgleich", 
+         subtitle=" Ligas mit mehr und Weniger BestScorer",
+         x="CountryName", 
+         y="Anzahl der BestScorer pro Country"
+     ) 
+ggplotly(p8)
+
+
+```
+
+
+### Spieler die ueber der Average schiessen
+
+```{r}
+p7<-ggplot(hallo9) +
+  geom_point(mapping=aes(x=GoalScored , y=BestScorer ), 
+             color="black",fill="black") +
+  labs(
+    title=" Beste Schiesser die ueber der Average scoren", 
+    y="Name der Spieler", 
+    x="Anzahl der erzielten Toren"
+  )
+ggplotly(p7)
+
+```
+
+
+
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Spieler mit der Besten GoalPerMatchAverage(GPMA)
+
+```{r}
+p9<-ggplot(hallo11) +
+  geom_point(mapping=aes(x=GPMA , y=BestScorer ), 
+             color="blue",fill="blue") +
+  labs(
+    title="  Schiesser die ueber der GPMA scoren", 
+    y="Name der Spieler", 
+    x="Goal per Match Average der Spieler"
+  )
+ggplotly(p9)
+
+```
+
+### Ligasausgleich mit Average ihrer BestScorer
+
+```{r}
+p10<-ggplot(hallo10 , mapping=aes(x=Country)) +
+     geom_bar(fill="violet", color="violet") +
+     labs(
+         title=" Ligas Goalausgleich ueber der GPMA", 
+         subtitle=" Ligas mit mehr und Weniger BestScorer mit GPMA",
+         x="CountryName", 
+         y="Anzahl der BestScorer mit gutem GPMA pro Country"
+     ) 
+ggplotly(p10)
+
+```
+
