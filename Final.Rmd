@@ -1,0 +1,309 @@
+---
+title: "Fußball Analyse der letzten Saison aus den 5 Besten Europa Ligameisterschaften "
+author: "Hanan Wandji"
+output: 
+  html_notebook:
+    highlight: pygments
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    encoding: utf-8   
+  html_document: 
+    fig_caption: yes
+    theme: cosmo
+    highlight: pygments
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+encoding: utf-8
+---
+
+
+```{r setup, include = FALSE}
+library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
+library(plotrix)
+library(ggplot2)
+library(plotly)
+library(RColorBrewer)
+suppressPackageStartupMessages(library(RColorBrewer))
+library(tidyverse)
+suppressPackageStartupMessages(library(tidyverse))
+knitr::opts_chunk$set(fig.width = 5, fig.asp = 1/3)
+X2021_2022_Football_Team_Stats <- read_delim("C:/Users/HANAN WANDJI/Desktop/VDA/data/2021-2022 Football Team Stats.csv", 
+    delim = ";", escape_double = FALSE, locale = locale(encoding = "ISO-8859-2"), 
+    trim_ws = TRUE)
+
+    
+Erg<- as.data.frame(X2021_2022_Football_Team_Stats)
+
+```
+
+
+# Verwendete Packages und Vorgehen
+Für die verwendung dieses Notebooks benötigen Sie die folgenden installatierten Packages:
+
+- tidyverse
+- plotly
+- RColorBrewer
+- ggplot2
+- dplyr
+- plotrix
+
+
+Als Datensatz wird *2021-2022 Football Team Stats* verwendet, den bei *Kaggle* https://www.kaggle.com/datasets/vivovinco/20212022-football-team-stats  gefunden wurde. Es geht dabei um eine Statistik von Fußball Meisterschaften aus den 5 Besten Europa Ligas(Frankreich, Deutschland,Spanien,Italien und England).Darin gibt es insgesamt 20 Merkmale bzw Atribute wie(Attendance, Goalscored, Bestscorer, Pts, GD, usw.), die im folgenden erläutert werden.
+*Rk*: vom Datentyp Numeric entspricht die Platzierung der Mannschaft im Datensatz.Sie werden in der absteigenden Reihenfolge sortiert. D.h die Mannschaft mit der höchsten erreichten Punkte zu den niedrigsten.
+*Squad*: vom Datentyp Character ist der Name der Mannschaft,*Country*:vom Datentyp Character ist  Name des Landes, *LgRk*: vom Datentyp Numeric ist die Position der Mannschaft in seiner Meisterschaft, *MP*: vom Datentyp Numeric ist die Anzahl von gespielten Spiele, *W*: vom Datentyp Numeric ist die Anzahl der gewonnenen Spiele, *D*: vom Datentyp Numeric ist die Anzahl Unentschiedene Spiele, *L*:vom Datentyp Numeric ist die Anzahl der verlorenen Spiele, *GF*:vom Datentyp Numeric ist die Anzahl der erzielten Tore, *GA*: vom Datentyp Numeric ist die Anzah der kassierten Tore, *GD*: vom Datentyp Numeric entspricht die Tordifferenz, *Pts*: Punktstand, *Pts/G*: Punkte pro Spiel, *xG*:erwartete Tore, *xGA*:erwartete kassierte Tore, *xGD*:erwartete Tordifferenz, *xGD/90*:erwartete Tordifferenz nach 90 Minuten, *Last 5*: letzte funf Ergebnisse, *Attendance*:Durchschnitt der Besucherzahl im Stadion, *BestScorer GoalScored*:vom Datentyp Character entspricht den Name des Bestschiessers und Anzahl der erzielten Tore, *Goalkeeper*: Torwart
+
+Diese Merkmale sind aber nicht vollständig bzw illustrieren nicht ganz genau die Mannschaften. Es gibt andere Merkmale wie die Anzahl der Roten und Gelben Karten, die Anzahl von Fehlern, erfolgreiche Pässe, Zweikämpfe usw., die die Meisterschaften besser illustrieren können. Die verfügbare Merkmale sind nur ein Teil einer größeren Obermenge.
+
+Der Datensatz wird ganz einfach mithilfe von read_delim eingelesen, da die Merkmale durch ein Semikolon getrennt werden. Danach werden sie in einem Data frame ausgelagert. Der Grund dafür ist einfach. Mit einem Data frame und mithilfe von dem Pipeline, Filter, select, mutate,usw. ist es möglich nur auf bestimmte Merkmale zuzugreifen und das vereinfacht die Visualisierung.
+
+# Untersuchung
+
+Bei der Betrachtung eines Datensatzes bzw eines Fußball Datensatzes kann man sich unterschiedlichen Fragen stellen und zwar:
+ 1) Was sind die Absoluten Häufigkeiten der verfügbaren Länder(Wieviel mal 
+kommen die Länder vor)?
+2) Wie sieht die Besucherzahl im Stadien aus? D.h in welcher Liga werden die Spiele mehr oder weniger besucht?
+3)Was ist Das Punktverhältnis zwischen die Länder? D.h wieviele Punkte wurden in Jedem Land durch die Mannschaften erreicht?
+4) Welche Mannschaften verlieren bzw gewinnen weniger oder mehr als den Schnitt?
+5)Welche Mannschaften Scoren viel oder weniger als den Schnitt und in welchen Länder gibt es die besten Scorer. usw..
+==> und Vieles mehr..
+Diese Fragen werden wir einfach mitfhilfe von ggplot und ggplotly visualisieren und danach interpretieren, was wir erfunden haben.
+
+
+
+# Häufigkeiten der Länder
+
+In unserem Datensatz gibt es insgesamt 98 Mannschaften. Wir wollen erstmal sehen, wie sich die Mannschaften in den Länder verteilen. D.h wie viel Mannschaften jedes Land beinhaltet. Dafür benutzen wir einen Barplot und wir greifen auf die Spalte Country, die die Namen der Länder enthält, zu. Am Ende wird nun einen Barplot mit unterschiedlichen Farben und eine Legende hinzugefügt.
+
+
+
+
+```{r}
+
+count<-table(X2021_2022_Football_Team_Stats$Country)
+p2<-barplot(count,main="5  Besten Europa Meisterschaften und Ihre Häufigkeiten",xlab="Name der Länder",ylab="Absolute Häufigkeiten",legend=rownames(count),col=c("green","red","blue","orange","yellow"))
+
+
+```
+
+Aus der Visualisierung ist es zu bemerken, dass die Häufigkeiten der Länder pro Mannschaft fast gleich aussieht. Jedes Land enthält in unserem Datensatz 20 Mannschaften, nur die Deutsche Liga besteht aus 18 Mannschaften.
+
+# Menschenmassen in Stadien
+
+Hierbei wollen wir herausfinden, wie viele Mannschaften pro Land wenig besucht werden. Dafür nehmen wir die Spalte *Attendance*. Diese Spalte enthält die durchschnittliche Besucherzahl der Mannschaften nach 37 SpielTage.
+Dann machen wir eine mutate mit der Spalte *average*. Dies entspricht den Durschnitt von den 98 Mannschaften. Zum schluss machen wir eine Filterung von Ländern, die unterhalb der Spalte *average* liegen und wir machen eine Selektion von den Name des Landes(Country),Name der Mannschaft(Squad) und *Attendance*.
+Dieser Histogramm wird Rot gefarbt,um anzudeuten, dass die Mannschaften  etwas schlechtes (kleine Besucherzahl) aufweisen
+
+
+
+
+
+```{r}
+
+hallo2<- Erg %>%
+  mutate(
+    average=sum(Attendance)/98,
+    
+  ) %>%
+  filter(Attendance<average) %>%
+     select(Squad, Country,Attendance)
+
+p<-ggplot(hallo2 , mapping=aes(x=Country)) +
+  geom_histogram(fill="red", color="red",stat="count" , breaks=seq(0, 20,4)) +
+  
+  labs(
+    title="5 Besten Meisterschaften", 
+    subtitle="Anzahl von Mannschaften pro Land mit wenigen Attendance",
+    x="Name von Länder", 
+    y="Absolute Häufigkeiten"
+  ) +
+  coord_flip()
+  ggplotly(p)
+```
+Aus dieser Visualisierung folgt, dass alle Länder auherhalb Großbritanien 
+eine Schlechte Besucherzahl bei den Spielen aufweisen. Die schechteste Davon ist Italien Mit 80% der Mannschaften mit einer Besucherzahl unter dem Schnitt. Nur die Englische Liga wird über 85 % der Spiele über den Schnitt besucht.
+
+# Punktverhältnis der Länder und Pie Chart Verteilung
+
+Hier wollen wir sehen wieviele Punkte wurden in jeder Ligameisterschaft nach
+37 Spieltage gesammelt. Dafür machen wir eine Gruppierung nach der Spalte *Country*. Dann die Summe von *Pts*(Pts ist dabei die erreichendete Punkte Pro Mannschaft nach 37 Spieltage). Diese Summe wird dann Pro Land jeweils in einer neuen *Mutate* Spalte(summe) hinzugefügt. Zum Schluss machen wir eine
+Selektion der Spalten Country(Name der Länder), Squad(Mannschaft Name),summe(die neue Spalte).
+
+
+
+
+
+```{r}
+
+hallo3 <-  Erg %>%
+  group_by(Country) %>%
+  mutate(
+    summe=sum(Pts),
+    
+  ) %>%
+  select(Squad, Country,summe)
+
+p2<-ggplot(hallo3,aes(Country, summe)) + 
+  geom_point(size = 3) + 
+  geom_line()+
+  labs(
+    title="5 Besten Länder und die Summe ihrer gesamten Punkten", 
+    x="Name von Länder", 
+    y="Gesamte Summe der Punkten"
+  ) 
+ggplotly(p2)
+
+```
+Im zweiten Pie Chart Verteilung nehmen wir einfach die vorherigen berechneten Summe Pro Länder und Wir repräsentieren jedes Land mit seiner Prozentualen Leistung nach der Saison. Als Farbe benutzen wir die unterschiedlichen Farben des Regenbogens, um die Länder miteinander zu unterscheiden.
+
+```{r}
+slices<- c(1009,1009,1001,845,1010)
+lbls<-c("England","Italien","Spanien","Deutschland","Frankreich")
+pct<-round(slices/sum(slices)*100)
+lbls<-paste(lbls, " ",pct, "%", seq="" )
+pie(slices ,labels=lbls, main="Pie Chart Verteilung der Länder nach der Saison", col=rainbow(5))
+
+```
+Bemerkenswert ist das 4 Länder(Frankreich, Großbritannien,Spanien und Italien) nach 37 Spieltage  die gleiche aufgerundete Leistung erbracht haben nämlich 21%. Nur Deutschland hat nur 17% erbracht. Ein möglicher Grund dafür besteht darin, dass es in der  Deutschen Liga nur 18 Mannschaften gibt, wenn die anderen über 20 Mannschaften verfügen. D.h es wird kaum vorkommen, dass die erreichte Punkte in Deutschland am Ende der Saison gleich wie in anderen Länder aussieht, da die Mannschaftenanzahl kleiner ist.  
+
+
+# Mannschaften mit gutem Tordifferenz
+
+In dieser Visualisierung wollen wir bestimmen, welche Mannschaften eine gute Tordifferenz besitzt. Dafür benötigen wir die Spalte *GD*(Goal Difference =Tore erzielt minus Tore Kassiert). Diese Spalte enthält dann die Tordifferenz von jeder Mannschaft nach 37 Spieltage. Wir machen dann eine Mutate mit der Spalte *average*. Dies entspricht den Schnitt der Tordifferenzen aller Mannschaten. Danach machen wir eine Filterung der Mannschaften die oberhalb der Average liegen und zum Schluss eine Selektion der Spalten(Squad, GD und average) 
+```{r}
+hallo7<-Erg %>%
+  mutate(
+    average=sum(GD)/98
+  ) %>%
+  filter(GD> average) %>%
+ select(Squad,GD,average)
+
+p6<-ggplot(hallo7) +
+  geom_point(mapping=aes(x=GD, y=Squad), 
+             color="brown",fill="brown") +
+  labs(
+    title=" gute Mannschaften mit Tordifferenz ober den Schnitt ", 
+    y="Name von Mannschaften", 
+    x="Tordifferenz der Mannschaften"
+  ) 
+ggplotly(p6)
+
+
+
+```
+Aus dieser Visualisierung lässt sich herausfinden,dass ungefähr 46% der verfügbaren Mannschaften eine Tordifferenz über den Durchschnitt besitzen. Dabei ist immer die englische Meisterschaft an der Spitze mit mehr als ein drittel  der Mannschaften und an letzten Stelle steht die Italienische Meisterschaft mit nur 7 Mannschaften.
+
+# Mannschaften die mehr als den Schnitt gewonnen haben
+
+Hierbei wollen wir die Mannschaften, die über den Schnitt gewinnen.Dabei greifen wir auf die Spalte *W* zu. Diese Spalte enthält alle gewonnenen Spiele der Mannschaften nach 37 Spiele. Wir machen wie üblich eine neue Spalte, die die Average der gewonnenen Spiele berechnet und am Ende eine Filter der Merkmale die oberhalb liegen und eine Selektion der Spalten(Squad, W und die neue Spalte Average).
+
+
+```{r}
+hallo5<-Erg %>%
+  mutate(
+    average=sum(W)/98
+  ) %>%
+  filter(W> average) %>%
+ select(Squad,W,average)
+p3<-ggplot(hallo5) +
+  geom_point(mapping=aes(x=W, y=Squad), 
+             color="blue",fill="blue") +
+  labs(
+    title=" Beste Mannschaften die ueber der Average gewinnen", 
+    y="Name von Mannschaften", 
+    x="Anzahl von gewonnenen Spielen"
+  )
+ggplotly(p3)
+
+```
+Bei der Gewinnquote zeigt immer noch die Englische Meisterschaft, warum sie als *beste Fussball Liga* gilt.  Manchester city aus England steht immer noch an der Spitze mit mehr als den Doppel des Durchschnitts. Hierbei ist die französische Liga an der letzten Stelle mit wenigen Mannschaften Dabei.
+
+# Spieler mit der Besten GPMA(Tor pro Spiel Durchschnitt)
+
+GPMA=Anzahl von erzielten Toren/ Anzahl von Spielen
+.
+Zum ersten wird einen neuen Datensatz *hallogt* erstellt, wobei die Spalte *Top Team Scorer* in Zwei Spalten(*BestScorer* und *GoalScored*) geteilt wird. Eine Spalte mit dem Name des Schießers und eine andere Mit seinen erzielten Toren.
+Danach erzeugen wir die Spalte *GPMA* und die Spalte *Average* . GPMA entspricht den Torschnitt von jedem Spieler nach der Anzahl der gespielten Spiele. Average ist einfach der Schnit der *GPMA* aller Mannschaften.
+
+```{r}
+hallogt<-Erg %>% separate(col = "Top Team Scorer", into = c("BestScorer","GoalScored"), sep=" - ")
+
+hallo11<- hallogt %>%
+  mutate(
+    GPMA=as.numeric(GoalScored)/MP,
+    Average=sum(GPMA)/98
+    
+  ) %>% 
+  filter(GPMA> Average) %>%
+  select(BestScorer, GoalScored ,GPMA,Country)
+p9<-ggplot(hallo11) +
+  geom_point(mapping=aes(x=GPMA , y=BestScorer ), 
+             color="maroon",fill="maroon") +
+  labs(
+    title="  Schiesser die über den GPMA scoren", 
+    y="Name der Spieler", 
+    x="Tor pro Spiel Durchschnitt der Spieler"
+  )
+ggplotly(p9)
+
+```
+
+
+# Schiessverhältnis zwischen die Ligas mit BestSchießer über den Schnitt
+
+Zum ersten wird einen neuen Dataframe *hallogt* erstellt, wobei die Spalte *Top Team Scorer* in Zwei Spalten(*BestScorer* und *GoalScored*) geteilt wird. Eine Spalte mit dem Name des Schießers und eine andere Mit seinen erzielten Toren.
+Danach machen wir eine Gruppierung über die Spalte *Country* 
+und eine  neue Spalte *Average* wird hinzugefügt. Dies enthält den Schnitt der erzielten Toren und am Ende machen wir eine Selektion der erzielten Tore oberhalb der Average 
+
+```{r}
+hallogt<-Erg %>% separate(col = "Top Team Scorer", into = c("BestScorer","GoalScored"), sep=" - ")
+
+hallo10<-hallogt %>%
+  group_by(Country)%>%
+  mutate(
+    Average=sum(as.numeric(GoalScored))/98
+    
+  ) %>% 
+  filter(GoalScored > Average) %>%
+  select(BestScorer, GoalScored ,Average,Country)
+
+p8<-ggplot(hallo10 , mapping=aes(x=Country)) +
+     geom_bar(fill="orange", color="black") +
+     labs(
+         title=" Ligas Goalausgleich", 
+         subtitle=" Ligas mit mehr und Weniger BestSchießer",
+         x="Name von Länder", 
+         y="Anzahl der BestSchießer pro Land"
+     ) 
+ggplotly(p8)
+
+```
+
+Die Deutsche Liga hat wenige Mannschaften als die andere Länder aber besitzt ein Drittel der besseren ToreSchießer der lertzten Saison. Zu beachten ist, dass Italien mit nur 6 Beteiligten steht immer an der letzten Stelle. Die Italienische Liga wird nicht nur unter den Schnitt besichtigt, sondern die Mannschaften und Spieler schießen nicht so viele. Diese Gründe weisen einfach nach, warum die Italienische Liga als *schwere* Liga gekennzeichnet wird.
+
+# überraschende Ergebnisse
+
+ein größes überraschendes Ergebnis besteht darin, dass insgesamt 4 Meisterschaften(Großbritannien, Frankreich, Italien und Spanien) die gleiche aufgerundete Leistung(jeweils 21% der punkten) am Ende der Saison gesammelt haben. Sie verfügen über unterschiedliche Tordiffernz, Erwartete Toren , Bestschießer und bei manchen Meisterschaften gibt es sogar mehr als 50 % der Meisterschaften, die wenig Tore erzielen. Wir können darunter verstehen, dass die Torquote einer Mannschaft keinen Stärkeren Einfluss auf den Gewinn oder Verlust eines Spiels hat.
+
+Eine weitere Überraschung liegt daran, dass die Deutsche Meisterschaft wenige Spieler bzw Stürmer hat, weil sie nur 18 Mannschaften hat, wenn die anderen Ligas über 20 Verfügen. Sie aber die Liga mit den besten Stürmer die mehr als den Schnitt schießen.
+
+
+# Kristischer Ausblick
+
+Es ist immer schwer seine eigene Arbeit zu beurteilen, aber nur die eigene Beiteiligten wissen, welcher Aufwand und welche Schwierigkeiten sie bei der Erledigung der Arbeit erlebt haben. In dieser Arbeit war die Idee mit einem Flexdashboard(in den beiden ersten versionen) die Daten zu visualisieren  ungeeignet. Der Grund dafür ist einfach. Damit kann man nicht gleichzeitig visualisieren und Text hinzufügen, bzw den Code ansehen. Aber nach zwei Versionen ist ein *Notebook* für diese Visualisierung zum Einsatz gekommen und hat uns die Sachen erleichtert und die Visualisierungen ist unserer Meinung nach nachvollziehbarer geworden. Besser hätten wir direkt mit einem Notebook angefangen und wir wären früh fertig geworden. Aber dies hat uns ermöglicht sowohl mit Flexdashboard als auch Notebook zu arbeiten. Das kann für uns nur ein Vorteil sein.
+
+Verwendete Quellen
+https://www.delftstack.com/de/howto/r/separate-in-r/:  Wurde benutzt, weil wir eine Spalte in zwei Spalten aufteilen wollten.
+
+Character Encoding in the RStudio IDE – RStudio Support:  Mit UTF-8 haben wir  Probleme zum Einlesen Manche Charakter gekriegt Daher haben wir uns diese Encoding Quelle Seite angeschaut, um unsere passende Encoding auszuwählen.
+
+	Geleisteten Arbeitszeit
+ Zur Erledigung dieser Arbeit haben wir ungefähr 47 Stunden.(innerhalb 4 Wochen) für die erste Version gebraucht. Für die zweite Version 10 Stunden innerhalb einer Woche.Für die dritte Version haben wir 23 Stunden gebraucht, um es  fertigzustellen. Das ergibt eine gesamte Arbeitsaufwand von 80 Stunden.
+
+
+
+ 
+
+
